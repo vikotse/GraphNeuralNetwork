@@ -1,3 +1,6 @@
+import matplotlib as mpl
+mpl.use('Agg')  # or whatever other backend that you want
+
 import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
