@@ -92,9 +92,12 @@ class GraphConvolution(Layer):  # ReLU(AXW)
         return dict(list(base_config.items()) + list(config.items()))
 
 
-def GCN(adj_dim,feature_dim,n_hidden, num_class, num_layers=2,activation=tf.nn.relu,dropout_rate=0.5, l2_reg=0, feature_less=True, ):
+def GCN(adj_dim, feature_dim, n_hidden, num_class, num_layers=2, activation=tf.nn.relu,
+        dropout_rate=0.5, l2_reg=0, feature_less=True, ):
+    # 输入邻接矩阵
     Adj = Input(shape=(None,), sparse=True)
     if feature_less:
+        # 输入特征矩阵
         X_in = Input(shape=(1,), )
 
         emb = Embedding(adj_dim, feature_dim,
@@ -102,6 +105,7 @@ def GCN(adj_dim,feature_dim,n_hidden, num_class, num_layers=2,activation=tf.nn.r
         X_emb = emb(X_in)
         h = Reshape([X_emb.shape[-1]])(X_emb)
     else:
+        # 输入特征矩阵
         X_in = Input(shape=(feature_dim,), )
 
         h = X_in
@@ -110,7 +114,8 @@ def GCN(adj_dim,feature_dim,n_hidden, num_class, num_layers=2,activation=tf.nn.r
         if i == num_layers - 1:
             activation = tf.nn.softmax
             n_hidden = num_class
-        h = GraphConvolution(n_hidden, activation=activation, dropout_rate=dropout_rate, l2_reg=l2_reg)([h,Adj])
+        h = GraphConvolution(n_hidden, activation=activation, dropout_rate=dropout_rate,
+                l2_reg=l2_reg)([h,Adj])
 
     output = h
     model = Model(inputs=[X_in,Adj], outputs=output)

@@ -13,18 +13,25 @@ if __name__ == "__main__":
 
     FEATURE_LESS = False
 
+    # 加载数据，划分train/val/test集，A:对称邻接矩阵(无向图)，features:数据feature
     A, features, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_data_v1(
         'cora')
 
+    # 邻接矩阵归一化: D^(-1/2) * A * D^(-1/2)
     A = preprocess_adj(A)
 
+    # 特征矩阵归一化: 每条数据特征和为1，类型从稀疏矩阵转为稠密矩阵
     features /= features.sum(axis=1, ).reshape(-1, 1)
 
     if FEATURE_LESS:
+        # X.shape: (2708,)
         X = np.arange(A.shape[-1])
+        # feature_dim = 2708
         feature_dim = A.shape[-1]
     else:
+        # X.shape: (2708, 1433)
         X = features
+        # feature_dim = 1433
         feature_dim = X.shape[-1]
     model_input = [X, A]
 

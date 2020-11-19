@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import matplotlib as mpl
 mpl.use('Agg')  # or whatever other backend that you want
 
@@ -17,6 +19,7 @@ def get_splits(y,):
     # train_val, idx_test = train_test_split(idx_list, test_size=0.2, random_state=1024)  # 1000
     # idx_train, idx_val = train_test_split(train_val, test_size=0.2, random_state=1024)  # 500
 
+    # 每个类别20条数据作为训练数据
     idx_train = []
     label_count = {}
     for i, label in enumerate(y):
@@ -26,16 +29,20 @@ def get_splits(y,):
             label_count[label] = label_count.get(label, 0) + 1
 
     idx_val_test = list(set(idx_list) - set(idx_train))
+    # 500条数据作为验证数据
     idx_val = idx_val_test[0:500]
+    # 1000条数据作为测试数据
     idx_test = idx_val_test[500:1500]
 
 
+    # y.shape: (总数据条数, label数量)
     y_train = np.zeros(y.shape, dtype=np.int32)
     y_val = np.zeros(y.shape, dtype=np.int32)
     y_test = np.zeros(y.shape, dtype=np.int32)
     y_train[idx_train] = y[idx_train]
     y_val[idx_val] = y[idx_val]
     y_test[idx_test] = y[idx_test]
+    # mask: bool数组，train_mask标记哪些下标是train
     train_mask = sample_mask(idx_train, y.shape[0])
     val_mask = sample_mask(idx_val, y.shape[0])
     test_mask = sample_mask(idx_test, y.shape[0])
@@ -47,6 +54,7 @@ def load_data_v1(dataset="cora", path="../data/cora/",):
 
     idx_features_labels = np.genfromtxt("{}{}.content".format(path, dataset), dtype=np.dtype(str))
     features = sp.csr_matrix(idx_features_labels[:, 1:-1], dtype=np.float32)
+    # onehot_labels shape: (data_size, featuer_size)
     onehot_labels = encode_onehot(idx_features_labels[:, -1])
 
     # build graph
@@ -60,6 +68,7 @@ def load_data_v1(dataset="cora", path="../data/cora/",):
 
     # build symmetric adjacency matrix
     # adj = adj + adj.T.multiply(adj.T > adj) - adj.multiply(adj.T > adj)
+    # 有向图邻接矩阵转无向图邻接矩阵
     adj = convert_symmetric(adj, )
 
     print('Dataset has {} nodes, {} edges, {} features.'.format(adj.shape[0], edges.shape[0], features.shape[1]))
@@ -159,7 +168,9 @@ def encode_onehot(labels):
 
 def normalize_adj(adj, symmetric=True):
     if symmetric:
+        # 度数求倒数开根号的对角矩阵d 即 D^(-1/2)
         d = sp.diags(np.power(np.array(adj.sum(1)), -0.5).flatten(), 0)
+        # d * adj * d
         a_norm = adj.dot(d).transpose().dot(d).tocsr()
     else:
         d = sp.diags(np.power(np.array(adj.sum(1)), -1).flatten(), 0)
@@ -168,7 +179,9 @@ def normalize_adj(adj, symmetric=True):
 
 
 def preprocess_adj(adj, symmetric=True):
+    # A = A + I
     adj = adj + sp.eye(adj.shape[0])
+    # A = D^(-1/2) * A * D^(-1/2)
     adj = normalize_adj(adj, symmetric)
     return adj
 
