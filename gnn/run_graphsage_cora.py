@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import networkx as nx
 import tensorflow as tf
@@ -10,16 +12,19 @@ from utils import preprocess_adj,plot_embeddings, load_data_v1
 
 
 if __name__ == "__main__":
-
+    # 加载数据，划分train/val/test集，A:对称邻接矩阵(无向图)，features:数据feature
     A, features, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_data_v1(
         'cora')
 
+    # 特征矩阵归一化: 每条数据特征和为1，类型从稀疏矩阵转为稠密矩阵
     features /= features.sum(axis=1, ).reshape(-1, 1)
 
     G = nx.from_scipy_sparse_matrix(A, create_using=nx.DiGraph())
 
+    # 邻接矩阵归一化: D^(-1/2) * A * D^(-1/2)
     A = preprocess_adj(A)
 
+    # indexs: [0, 1, ..., nodes number - 1]
     indexs = np.arange(A.shape[0])
     neigh_number = [10, 25]
     neigh_maxlen = []
@@ -27,6 +32,7 @@ if __name__ == "__main__":
     model_input = [features, np.asarray(indexs, dtype=np.int32)]
 
     for num in neigh_number:
+        # 从图中每个节点抽样num个邻居节点
         sample_neigh, sample_neigh_len = sample_neighs(
             G, indexs, num, self_loop=False)
         model_input.extend([sample_neigh])

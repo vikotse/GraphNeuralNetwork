@@ -14,6 +14,8 @@ if __name__ == "__main__":
     FEATURE_LESS = False
 
     # 加载数据，划分train/val/test集，A:对称邻接矩阵(无向图)，features:数据feature
+    # A: (node_num, node_num)
+    # features shape: (node_num, feature_dim)
     A, features, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_data_v1(
         'cora')
 
